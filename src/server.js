@@ -1,20 +1,12 @@
 import express from "express";
 import { pool } from "./config/db.js";
+import { createUser, findUserByEmail } from "./db/queries/users.queries.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 const app = express();
 
-app.get("/health", (req, res, next) => {
-  res.json({ status: "ok" });
-});
-
-app.get("/db-check", async (req, res, next) => {
-  try {
-    const result = await pool.query("select now()");
-    res.json({ dbtime: result.rows[0] });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+app.use(express.json());
+app.use("/auth", authRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

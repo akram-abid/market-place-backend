@@ -1,10 +1,10 @@
-import { pool } from "../../config/db";
+import { pool } from "../../config/db.js";
 
 export async function createUser({ email, passwordHash }) {
   const result = await pool.query(
     `insert into users (email, password_hash)
-        vlaues ($1, $2)
-        returning id, eamil, role, created_at`,
+        values ($1, $2)
+        returning id, email, role, created_at`,
     [email, passwordHash],
   );
   return result.rows[0];
