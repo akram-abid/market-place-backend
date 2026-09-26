@@ -1,5 +1,7 @@
 import { hashPassword, verifyPassword } from "../../utils/hash.js";
 import { createUser, findUserByEmail } from "../../db/queries/users.queries.js";
+import { generateRrefreshToken, hashToken } from "../../utils/jwt.js";
+import { createRefreshToken } from "../../db/queries/refreshTokens.queries.js";
 
 export async function signup({ email, password }) {
   const existing = await findUserByEmail(email);
@@ -26,5 +28,10 @@ export async function login({ email, password }) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  return user;
+  const refreshToken = generateRrefreshToken();
+  const hashedRefreshToken = hashToken(refreshToken);
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  createRefreshToken({userId: user.id, tokenHash: hashedRefreshToken, expiresAt});
+
+  return {user, refreshToken};
 }
