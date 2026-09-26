@@ -12,7 +12,7 @@ export async function createUser({ email, passwordHash }) {
 
 export async function findUserByEmail(email) {
   const result = await pool.query(
-    `select * from users where email = $1 and deleted_at is not null`,
+    `select * from users where email = $1 and deleted_at is null`,
     [email],
   );
 
