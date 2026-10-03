@@ -18,3 +18,13 @@ export async function findUserByEmail(email) {
 
   return result.rows[0];
 }
+
+export async function findUserById(id) {
+  const result = await pool.query(
+    `select * from users where id = &1 
+    and deleted_at is null`,
+    [id],
+  );
+
+  return result.rows[0];
+}

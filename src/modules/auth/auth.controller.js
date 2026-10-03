@@ -1,6 +1,6 @@
 import { findUserByEmail } from "../../db/queries/users.queries.js";
 import { generateRrefreshToken, signAccessToken } from "../../utils/jwt.js";
-import { login, signup } from "./auth.service.js";
+import { login, refreshAcessToken, signup } from "./auth.service.js";
 
 export async function signupController(req, res) {
   try {
@@ -48,4 +48,9 @@ export async function loginController(req, res) {
 
     return res.status(500).json({ error: "something went wrong" });
   }
+}
+
+export async function refreshController (req, res) {
+  const userRefreshToken = req.body.refreshToken
+  const {accessToken, refreshToken } = refreshAcessToken({userRefreshToken})
 }

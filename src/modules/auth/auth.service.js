@@ -1,7 +1,19 @@
 import { hashPassword, verifyPassword } from "../../utils/hash.js";
-import { createUser, findUserByEmail } from "../../db/queries/users.queries.js";
-import { generateRrefreshToken, hashToken } from "../../utils/jwt.js";
-import { createRefreshToken } from "../../db/queries/refreshTokens.queries.js";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+} from "../../db/queries/users.queries.js";
+import {
+  generateRrefreshToken,
+  hashToken,
+  signAccessToken,
+} from "../../utils/jwt.js";
+import {
+  createRefreshToken,
+  findRefreshTokenByHash,
+  revokeRefreshToken,
+} from "../../db/queries/refreshTokens.queries.js";
 
 export async function signup({ email, password }) {
   const existing = await findUserByEmail(email);
@@ -16,9 +28,7 @@ export async function signup({ email, password }) {
 
 export async function login({ email, password }) {
   const user = await findUserByEmail(email);
-  console.log("looked up:", email, "-> found:", user);
   if (!user) {
-    console.log("i guess this wont appear");
     throw new Error("INVALID_CREDENTIALS");
   }
 
@@ -30,8 +40,37 @@ export async function login({ email, password }) {
 
   const refreshToken = generateRrefreshToken();
   const hashedRefreshToken = hashToken(refreshToken);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  createRefreshToken({userId: user.id, tokenHash: hashedRefreshToken, expiresAt});
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  createRefreshToken({
+    userId: user.id,
+    tokenHash: hashedRefreshToken,
+    expiresAt,
+  });
 
-  return {user, refreshToken};
+  return { user, refreshToken };
+}
+
+export async function refreshAcessToken({ refreshToken }) {
+  const hashplainRefreshToken = hashToken(refreshToken);
+  const refreshTokenRow = findRefreshTokenByHash(hashplainRefreshToken);
+
+  if (foundRefreshToken) {
+    throw new Error("INVALID_REFRESH_TOKEN");
+  }
+
+  revokeRefreshToken(refreshTokenRow.id);
+  const newRefreshToken = generateRrefreshToken();
+  const hashNewRefreshToken = hashToken(newRefreshToken);
+  const { user_id, id } = createRefreshToken();
+
+  const user = findUserById(user_id);
+  const payload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = signAccessToken(payload);
+
+  return {accessToken, refreshToken: newRefreshToken}
 }
