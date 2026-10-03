@@ -1,5 +1,5 @@
 import { findUserByEmail } from "../../db/queries/users.queries.js";
-import { generateRrefreshToken, signAccessToken } from "../../utils/jwt.js";
+import { signAccessToken } from "../../utils/jwt.js";
 import { login, refreshAcessToken, signup } from "./auth.service.js";
 
 export async function signupController(req, res) {
@@ -50,7 +50,21 @@ export async function loginController(req, res) {
   }
 }
 
-export async function refreshController (req, res) {
-  const userRefreshToken = req.body.refreshToken
-  const {accessToken, refreshToken } = refreshAcessToken({userRefreshToken})
+export async function refreshController(req, res) {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: "refreshToken is required" });
+    }
+    console.log("the refresh token that i am trying to use ", refreshToken)
+    const result = await refreshAcessToken({ refreshToken });
+    return res.status(200).json(result);
+  } catch (err) {
+    if (err.message === "INVALID_REFRESH_TOKEN") {
+      return res.status(400).json({ error: "invalid or expired refresh token" });
+    }
+    console.error(err)
+    return res.status(500).json({error: "something went wrong"})
+  }
 }

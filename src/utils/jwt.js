@@ -9,7 +9,7 @@ export function verifyAccessToken(token) {
     return jwt.verify(token, process.env.JWT_SECRET)
 }
 
-export function generateRrefreshToken() {
+export function generateRefreshToken() {
     return crypto.randomBytes(40).toString("hex")
 }
 

@@ -23,5 +23,5 @@ export async function findRefreshTokenByHash(tokenHash) {
 }
 
 export async function revokeRefreshToken(id) {
-  await pool.query(`update refresh_tokens set revoked_at = now() at id=$1`, [id]);
+  await pool.query(`update refresh_tokens set revoked_at = now() where id = $1`, [id]);
 }

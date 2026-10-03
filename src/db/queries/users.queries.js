@@ -21,7 +21,7 @@ export async function findUserByEmail(email) {
 
 export async function findUserById(id) {
   const result = await pool.query(
-    `select * from users where id = &1 
+    `select * from users where id = $1 
     and deleted_at is null`,
     [id],
   );

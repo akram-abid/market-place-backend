@@ -5,7 +5,7 @@ import {
   findUserById,
 } from "../../db/queries/users.queries.js";
 import {
-  generateRrefreshToken,
+  generateRefreshToken,
   hashToken,
   signAccessToken,
 } from "../../utils/jwt.js";
@@ -38,7 +38,7 @@ export async function login({ email, password }) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  const refreshToken = generateRrefreshToken();
+  const refreshToken = generateRefreshToken();
   const hashedRefreshToken = hashToken(refreshToken);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   createRefreshToken({
@@ -52,18 +52,26 @@ export async function login({ email, password }) {
 
 export async function refreshAcessToken({ refreshToken }) {
   const hashplainRefreshToken = hashToken(refreshToken);
-  const refreshTokenRow = findRefreshTokenByHash(hashplainRefreshToken);
+  const refreshTokenRow = await findRefreshTokenByHash(hashplainRefreshToken);
 
-  if (foundRefreshToken) {
+  if (!refreshTokenRow) {
     throw new Error("INVALID_REFRESH_TOKEN");
   }
 
-  revokeRefreshToken(refreshTokenRow.id);
-  const newRefreshToken = generateRrefreshToken();
-  const hashNewRefreshToken = hashToken(newRefreshToken);
-  const { user_id, id } = createRefreshToken();
+  await revokeRefreshToken(refreshTokenRow.id);
 
-  const user = findUserById(user_id);
+  const newRefreshToken = generateRefreshToken();
+  const hashNewRefreshToken = hashToken(newRefreshToken);
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  await createRefreshToken({
+    userId: refreshTokenRow.user_id,
+    tokenHash: hashNewRefreshToken,
+    expiresAt,
+  });
+
+  const user = await findUserById(refreshTokenRow.user_id);
+
   const payload = {
     userId: user.id,
     email: user.email,
@@ -72,5 +80,5 @@ export async function refreshAcessToken({ refreshToken }) {
 
   const accessToken = signAccessToken(payload);
 
-  return {accessToken, refreshToken: newRefreshToken}
+  return { accessToken, refreshToken: newRefreshToken };
 }
