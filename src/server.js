@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "./config/db.js";
 import { createUser, findUserByEmail } from "./db/queries/users.queries.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import { requireAuth } from "./middleware/requireAuth.js";
 
 const app = express();
 
