@@ -82,3 +82,14 @@ export async function refreshAcessToken({ refreshToken }) {
 
   return { accessToken, refreshToken: newRefreshToken };
 }
+
+export async function logout({ refreshToken }) {
+  const hashedRefreshToken = hashToken(refreshToken);
+  const refreshTokenRow = await findRefreshTokenByHash(hashedRefreshToken);
+
+  if (refreshTokenRow) {
+    await revokeRefreshToken(refreshTokenRow.id)
+  }
+
+  return
+}
