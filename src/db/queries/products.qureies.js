@@ -39,3 +39,26 @@ export async function listProducts({ limit = 20, offset = 0 }) {
 
   return result.rows;
 }
+
+export async function updateProduct({
+  id,
+  categoryId,
+  name,
+  description,
+  priceCents,
+  stockQuantity,
+}) {
+  const result = await pool.query(`
+        update products
+        set category_id = coalesce($2, category_id),
+        name = coalesce($3, name),
+        description = coalesce($4, description),
+        price_cents = coalesce($5, price_cents),
+        stock_quantity = coalesce($6, stock_quantity),
+        updated_at = now()
+        where id = $1 and deleted_at is null 
+        returning *
+        `, [id, categoryId, name, description, priceCents, stockQuantity]);
+
+  return result.rows[0]
+}
