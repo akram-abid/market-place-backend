@@ -11,7 +11,7 @@ export async function createProduct({
   const result = await pool.query(
     `insert into products (seller_id, category_id, name, description, price_cents, stock_quantity)
     values ($1, $2, $3, $4, $5, $6)
-    returning *
+    returning *;
         `,
     [sellerId, categoryId, name, description, priceCents, stockQuantity],
   );
@@ -21,7 +21,7 @@ export async function createProduct({
 export async function findProductById(id) {
   const result = await pool.query(
     `
-        select * from products where id = $1
+        select * from products where id = $1;
         `,
     [id],
   );
@@ -32,7 +32,7 @@ export async function findProductById(id) {
 export async function listProducts({ limit = 20, offset = 0 }) {
   const result = await pool.query(
     `
-        select * from products where deleted_at is null order by created_at desc limit $1 offset $2
+        select * from products where deleted_at is null order by created_at desc limit $1 offset $2;
         `,
     [limit, offset],
   );
@@ -48,7 +48,8 @@ export async function updateProduct({
   priceCents,
   stockQuantity,
 }) {
-  const result = await pool.query(`
+  const result = await pool.query(
+    `
         update products
         set category_id = coalesce($2, category_id),
         name = coalesce($3, name),
@@ -57,8 +58,18 @@ export async function updateProduct({
         stock_quantity = coalesce($6, stock_quantity),
         updated_at = now()
         where id = $1 and deleted_at is null 
-        returning *
-        `, [id, categoryId, name, description, priceCents, stockQuantity]);
+        returning *;
+        `,
+    [id, categoryId, name, description, priceCents, stockQuantity],
+  );
 
-  return result.rows[0]
+  return result.rows[0];
+}
+
+export async function softDeleteProduct(id) {
+  const result = await pool.query(`
+        update products set deleted_at = now() where id = $1 and deleted_at is null returning *;
+        `, [id]);
+
+  return result.rows[0];
 }
