@@ -1,4 +1,5 @@
 import {
+  createProduct,
   findProductById,
   softDeleteProduct,
   updateProduct,
@@ -47,4 +48,24 @@ export async function deleteProductForSeller({ productId, sellerId }) {
 
   const result = await softDeleteProduct(productId);
   return result;
+}
+
+export async function createProductForSeller({
+  sellerId,
+  categoryId,
+  name,
+  description,
+  priceCents,
+  stockQuantity,
+}) {
+  const product = await createProduct({
+    sellerId,
+    categoryId,
+    name,
+    description,
+    priceCents,
+    stockQuantity,
+  });
+
+  return product;
 }
