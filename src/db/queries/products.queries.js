@@ -48,6 +48,7 @@ export async function updateProduct({
   priceCents,
   stockQuantity,
 }) {
+  console.log("the id i got is this ", id)
   const result = await pool.query(
     `
         update products
@@ -62,7 +63,7 @@ export async function updateProduct({
         `,
     [id, categoryId, name, description, priceCents, stockQuantity],
   );
-
+  console.log("the  result from the database is ", result.rows [0])
   return result.rows[0];
 }
 
