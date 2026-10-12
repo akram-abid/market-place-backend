@@ -1,3 +1,4 @@
+import { Result } from "pg";
 import { pool } from "../../config/db.js";
 import {
   lockProductForUpdate,
@@ -7,7 +8,9 @@ import {
   findOrderById,
   findOrderItemsByOrderId,
   listOrdersByBuyerId,
+  updateOrderStatus,
 } from "../../db/queries/orders.queries.js";
+import { findProductById } from "../../db/queries/products.queries.js";
 
 export async function placeOrder({ buyerId, items }) {
   // merge duplicate productIds, summing quantities
@@ -87,6 +90,17 @@ export async function getOrderForBuyer({ orderId, buyerId }) {
 }
 
 export async function listOrdersForBuyer({ buyerId, limit = 20, offset = 0 }) {
-  const orders = await listOrdersByBuyerId(buyerId, {limit, offset});
+  const orders = await listOrdersByBuyerId(buyerId, { limit, offset });
   return orders;
+}
+
+export async function updateOrderStatusForBuyer({ orderId, buyerId, stauts }) {
+  const order = await findProductById(orderId);
+
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+  if (order.buyer_id != buyerId) throw new Error("NOT_ORDER_OWNER");
+
+  const result = await updateOrderStatus({ orderId, status });
+
+  return result;
 }

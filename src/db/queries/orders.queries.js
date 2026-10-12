@@ -78,3 +78,44 @@ export async function listOrdersByBuyerId(buyerId, { limit, offset }) {
   );
   return result.rows;
 }
+
+// orders.service.js — updateOrderStatusForSeller
+
+const ALLOWED_STATUSES = [
+  "pending",
+  "paid",
+  "shipped",
+  "delivered",
+  "cancelled",
+];
+
+export async function updateOrderStatusForSeller({
+  orderId,
+  sellerId,
+  status,
+}) {
+  const order = await findOrderById(orderId);
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+
+  if (!ALLOWED_STATUSES.includes(status)) {
+    throw new Error("INVALID_STATUS");
+  }
+
+  const orderItems = await findOrderItemsByOrderId(orderId);
+
+  let isSellerOfSomeItem = false;
+  for (const item of orderItems) {
+    const product = await findProductById(item.product_id);
+    if (product && product.seller_id === sellerId) {
+      isSellerOfSomeItem = true;
+      break;
+    }
+  }
+
+  if (!isSellerOfSomeItem) {
+    throw new Error("NOT_ORDER_SELLER");
+  }
+
+  const result = await updateOrderStatus({ orderId, status });
+  return result;
+}

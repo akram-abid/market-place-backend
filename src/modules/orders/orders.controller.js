@@ -2,6 +2,7 @@ import {
   getOrderForBuyer,
   listOrdersForBuyer,
   placeOrder,
+  updateOrderStatusForBuyer,
 } from "./orders.service.js";
 
 export async function placeOrderController(req, res) {
@@ -58,6 +59,35 @@ export async function listOrdersController(req, res) {
 
     return res.status(200).json({ orders });
   } catch (error) {
+    return res.status(500).json({ error: "something went wrong" });
+  }
+}
+
+export async function updateOrderStatusController(req, res) {
+  try {
+    const orderId = req.params.id;
+    const sellerId = req.user.id;
+    const { status } = req.body;
+
+    const updatedOrder = await updateOrderStatusForSeller({
+      orderId,
+      sellerId,
+      status,
+    });
+
+    return res.status(200).json({ updatedOrder });
+  } catch (error) {
+    if (error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({ error: "order not found" });
+    }
+    if (error.message === "NOT_ORDER_SELLER") {
+      return res.status(403).json({ error: "you don't sell any items in this order" });
+    }
+    if (error.message === "INVALID_STATUS") {
+      return res.status(400).json({ error: "invalid status value" });
+    }
+
+    console.error(error);
     return res.status(500).json({ error: "something went wrong" });
   }
 }
