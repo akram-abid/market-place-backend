@@ -1,4 +1,8 @@
-import { placeOrder } from "./orders.service.js";
+import {
+  getOrderForBuyer,
+  listOrdersForBuyer,
+  placeOrder,
+} from "./orders.service.js";
 
 export async function placeOrderController(req, res) {
   try {
@@ -23,6 +27,37 @@ export async function placeOrderController(req, res) {
         .json({ error: "there not enough stock of this product" });
     }
 
+    return res.status(500).json({ error: "something went wrong" });
+  }
+}
+
+export async function getOrderController(req, res) {
+  try {
+    const orderId = req.params.id;
+    const buyerId = req.user.id;
+    const result = await getOrderForBuyer({ buyerId, orderId });
+
+    return res.status(200).json({ order: result });
+  } catch (error) {
+    if (error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({ error: "order not found" });
+    }
+    if (error.message === "NOT_ORDER_OWNER") {
+      return res.status(403).json({ error: "not the owner of the order" });
+    }
+    return res.status(500).json({ error: "something went wrong" });
+  }
+}
+
+export async function listOrdersController(req, res) {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const buyerId = req.user.id;
+    const orders = await listOrdersForBuyer({ buyerId, limit, offset });
+
+    return res.status(200).json({ orders });
+  } catch (error) {
     return res.status(500).json({ error: "something went wrong" });
   }
 }

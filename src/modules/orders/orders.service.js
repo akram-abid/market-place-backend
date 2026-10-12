@@ -4,6 +4,9 @@ import {
   decrementStock,
   insertOrder,
   insertOrderItems,
+  findOrderById,
+  findOrderItemsByOrderId,
+  listOrdersByBuyerId,
 } from "../../db/queries/orders.queries.js";
 
 export async function placeOrder({ buyerId, items }) {
@@ -16,7 +19,7 @@ export async function placeOrder({ buyerId, items }) {
       quantityByProductId[item.productId] = item.quantity;
     }
   }
-  
+
   const mergedItems = Object.entries(quantityByProductId).map(
     ([productId, quantity]) => ({ productId, quantity }),
   );
@@ -69,4 +72,21 @@ export async function placeOrder({ buyerId, items }) {
   } finally {
     client.release();
   }
+}
+
+export async function getOrderForBuyer({ orderId, buyerId }) {
+  const order = await findOrderById(orderId);
+
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+  if (order.buyer_id != buyerId) {
+    throw new Error("NOT_ORDER_OWNER");
+  }
+  const orderItems = await findOrderItemsByOrderId(orderId);
+
+  return { ...order, orderItems };
+}
+
+export async function listOrdersForBuyer({ buyerId, limit = 20, offset = 0 }) {
+  const orders = await listOrdersByBuyerId(buyerId, {limit, offset});
+  return orders;
 }
