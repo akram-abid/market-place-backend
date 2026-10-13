@@ -74,3 +74,21 @@ export async function softDeleteProduct(id) {
 
   return result.rows[0];
 }
+
+export async function lockProductForUpdate(client, productId) {
+  const result = await client.query(
+    "select * from products where id = $1 and deleted_at is null for update",
+    [productId]
+  );
+  return result.rows[0];
+}
+
+export async function decrementStock(client, productId, quantity) {
+  const result = await client.query(
+    `update products set stock_quantity = stock_quantity - $2
+     where id = $1 and deleted_at is null
+     returning *`,
+    [productId, quantity]
+  );
+  return result.rows;
+}

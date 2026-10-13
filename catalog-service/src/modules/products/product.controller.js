@@ -2,6 +2,7 @@ import {
   findProductById,
   listProducts,
 } from "../../db/queries/products.queries.js";
+import { reserveStock } from "./product.service.js";
 import {
   createProductForSeller,
   deleteProductForSeller,
@@ -106,6 +107,20 @@ export async function deleteProductController(req, res) {
     if (err.message === "NOT_PRODUCT_OWENR") {
       return res.status(403).json({ error: "you dont own the product to delete it" });
     }
+    console.error(err);
+    return res.status(500).json({ error: "something went wrong" });
+  }
+}
+
+export async function reserveStockController(req, res) {
+  try {
+    const { items, buyerId } = req.body;
+    const reservedItems = await reserveStock({ items, buyerId });
+    return res.status(200).json({ reservedItems });
+  } catch (err) {
+    if (err.message === "PRODUCT_NOT_FOUND") return res.status(404).json({ error: "product not found" });
+    if (err.message === "CANNOT_BUY_OWN_PRODUCT") return res.status(403).json({ error: "cannot buy your own product" });
+    if (err.message === "INSUFFICIENT_STOCK") return res.status(409).json({ error: "insufficient stock" });
     console.error(err);
     return res.status(500).json({ error: "something went wrong" });
   }

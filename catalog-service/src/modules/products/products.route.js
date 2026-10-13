@@ -4,6 +4,7 @@ import {
   deleteProductController,
   getProductController,
   listProductController,
+  reserveStockController,
   updateProductController,
 } from "./product.controller.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
@@ -26,5 +27,6 @@ router.delete(
   requireRole("seller"),
   deleteProductController,
 );
+router.post("/reserve-stock", reserveStockController);
 
 export default router;

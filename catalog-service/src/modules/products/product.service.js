@@ -1,6 +1,9 @@
+import { pool } from "../../config/db.js";
 import {
   createProduct,
+  decrementStock,
   findProductById,
+  lockProductForUpdate,
   softDeleteProduct,
   updateProduct,
 } from "../../db/queries/products.queries.js";
@@ -65,4 +68,40 @@ export async function createProductForSeller({
   });
 
   return product;
+}
+
+export async function reserveStock({ items, buyerId }) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const reservedItems = [];
+
+    for (const item of items) {
+      const product = await lockProductForUpdate(client, item.productId);
+
+      if (!product) throw new Error("PRODUCT_NOT_FOUND");
+      if (product.seller_id === buyerId)
+        throw new Error("CANNOT_BUY_OWN_PRODUCT");
+      if (product.stock_quantity < item.quantity)
+        throw new Error("INSUFFICIENT_STOCK");
+
+      await decrementStock(client, item.productId, item.quantity);
+
+      reservedItems.push({
+        productId: product.id,
+        name: product.name,
+        priceCents: product.price_cents,
+        quantity: item.quantity,
+      });
+    }
+
+    await client.query("COMMIT");
+    return reservedItems;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
