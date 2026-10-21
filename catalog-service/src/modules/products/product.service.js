@@ -21,7 +21,7 @@ export async function updateProductForSeller({
 }) {
   const product = await findProductById(productId);
   if (!product || product.deleted_at != null) {
-    throw new Error("NOT_PRODUCT_OWNER");
+    throw new Error("NO_PRODUCT_FOUND");
   }
 
   if (sellerId != product.seller_id) {
@@ -35,6 +35,23 @@ export async function updateProductForSeller({
     priceCents,
     stockQuantity,
   });
+
+  try {
+    await publishProductEvent({
+      type: "product.updated",
+      product: {
+        id: updatedProduct.id,
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        priceCents: updatedProduct.price_cents,
+        categoryId: updatedProduct.category_id,
+        sellerId: updatedProduct.seller_id,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
   return updatedProduct;
 }
 
@@ -49,6 +66,21 @@ export async function deleteProductForSeller({ productId, sellerId }) {
   }
 
   const result = await softDeleteProduct(productId);
+  try {
+    await publishProductEvent({
+      type: "product.deleted",
+      product: {
+        id: result.id,
+        name: result.name,
+        description: result.description,
+        priceCents: result.price_cents,
+        categoryId: result.category_id,
+        sellerId: result.seller_id,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
   return result;
 }
 
