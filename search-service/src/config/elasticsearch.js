@@ -53,3 +53,37 @@ export async function deleteProductFromIndex(productId) {
     id: productId,
   });
 }
+
+export async function searchProducts({ query, categoryId, minPrice, maxPrice, limit = 20, offset = 0 }) {
+  const mustClauses = [];
+  const filterClauses = [];
+
+  if (query) {
+    mustClauses.push({ match: { name: query } });
+  }
+
+  if (categoryId) {
+    filterClauses.push({ term: { categoryId } });
+  }
+
+  if (minPrice != null || maxPrice != null) {
+    const range = {};
+    if (minPrice != null) range.gte = minPrice;
+    if (maxPrice != null) range.lte = maxPrice;
+    filterClauses.push({ range: { priceCents: range } });
+  }
+
+  const result = await esClient.search({
+    index: PRODUCTS_INDEX,
+    query: {
+      bool: {
+        must: mustClauses.length ? mustClauses : [{ match_all: {} }],
+        filter: filterClauses,
+      },
+    },
+    from: offset,
+    size: limit,
+  });
+
+  return result.hits.hits.map((hit) => ({ id: hit._id, ...hit._source }));
+}
