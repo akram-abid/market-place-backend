@@ -32,3 +32,24 @@ export async function createProductsIndex() {
 
   console.log("Products index created");
 }
+
+export async function indexProduct(product) {
+  await esClient.index({
+    index: PRODUCTS_INDEX,
+    id: product.id,
+    document: {
+      name: product.name,
+      description: product.description,
+      priceCents: product.priceCents,
+      categoryId: product.categoryId,
+      sellerId: product.sellerId,
+    },
+  });
+}
+
+export async function deleteProductFromIndex(productId) {
+  await esClient.delete({
+    index: PRODUCTS_INDEX,
+    id: productId,
+  });
+}
