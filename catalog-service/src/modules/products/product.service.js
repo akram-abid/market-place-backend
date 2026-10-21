@@ -1,4 +1,6 @@
+import { createDiffieHellmanGroup } from "crypto";
 import { pool } from "../../config/db.js";
+import { publishProductEvent } from "../../config/rabbitmq.js";
 import {
   createProduct,
   decrementStock,
@@ -67,6 +69,21 @@ export async function createProductForSeller({
     stockQuantity,
   });
 
+  try {
+    await publishProductEvent({
+      type: "product.created",
+      product: {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        priceCents: product.price_cents,
+        categoryId: product.category_id,
+        sellerId: product.seller_id,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
   return product;
 }
 
