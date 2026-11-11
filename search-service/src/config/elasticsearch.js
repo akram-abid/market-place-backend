@@ -1,7 +1,8 @@
-import { Client } from "@elastic/elasticsearch"
+import { Client } from "@elastic/elasticsearch";
 
-export const esClient = new Client({ node: "http://localhost:9200" })
-
+export const esClient = new Client({
+  node: process.env.ELASTICSEARCH_URL || "http://localhost:9200",
+});
 export const PRODUCTS_INDEX = "products";
 
 export async function createProductsIndex() {
@@ -54,7 +55,14 @@ export async function deleteProductFromIndex(productId) {
   });
 }
 
-export async function searchProducts({ query, categoryId, minPrice, maxPrice, limit = 20, offset = 0 }) {
+export async function searchProducts({
+  query,
+  categoryId,
+  minPrice,
+  maxPrice,
+  limit = 20,
+  offset = 0,
+}) {
   const mustClauses = [];
   const filterClauses = [];
 

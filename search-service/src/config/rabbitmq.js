@@ -2,7 +2,7 @@ import amqp from "amqplib";
 import { deleteProductFromIndex, esClient, indexProduct, PRODUCTS_INDEX } from "./elasticsearch.js";
 
 export async function startConsumer() {
-  const connection = await amqp.connect("amqp://localhost");
+  const connection = await amqp.connect(process.env.RABBITMQ_URL || "amqp://localhost");
   const channel = await connection.createChannel();
   await channel.assertQueue("product-events");
 
