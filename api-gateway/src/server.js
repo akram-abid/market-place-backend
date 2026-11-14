@@ -22,6 +22,10 @@ app.use(
   }),
 );
 
+app.use("/products/reserve-stock", (req, res) =>
+  res.status(404).json({ error: "not found" }),
+);
+
 app.use(
   createProxyMiddleware({
     pathFilter: "/products",
