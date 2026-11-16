@@ -36,8 +36,10 @@ export async function placeOrder({ buyerId, items }) {
   );
 
   if (!response.ok) {
-    const errorBody = await response.json();
-    throw new Error(errorBody.error || "RESERVE_STOCK_FAILED");
+    if (response.status === 404) throw new Error("PRODUCT_NOT_FOUND");
+    if (response.status === 403) throw new Error("CANNOT_BUY_OWN_PRODUCT");
+    if (response.status === 409) throw new Error("INSUFFICIENT_STOCK");
+    throw new Error("RESERVE_STOCK_FAILED");
   }
 
   const { reservedItems } = await response.json();
