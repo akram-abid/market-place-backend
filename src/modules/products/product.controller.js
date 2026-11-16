@@ -66,7 +66,6 @@ export async function updateProductController(req, res) {
     
     const { name, description, categoryId, priceCents, stockQuantity } =
       req.body;
-    console.log("the price i got ", priceCents)
 
     const result = await updateProductForSeller({
       sellerId,
@@ -77,7 +76,6 @@ export async function updateProductController(req, res) {
       priceCents,
       stockQuantity,
     });
-    console.log("after updating ", result)
     return res.status(200).json({ product: result });
   } catch (err) {
     if (err.message === "NO_PRODUCT_FOUND") {

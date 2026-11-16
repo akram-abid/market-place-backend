@@ -15,7 +15,6 @@ export async function updateProductForSeller({
   stockQuantity,
 }) {
   const product = await findProductById(productId);
-  console.log("the product i got is this ", product);
   if (!product || product.deleted_at != null) {
     throw new Error("NOT_PRODUCT_OWNER");
   }
@@ -23,7 +22,6 @@ export async function updateProductForSeller({
   if (sellerId != product.seller_id) {
     throw new Error("NOT_PRODUCT_OWNER");
   }
-  console.log("the product i am searching for is this ", productId)
   const updatedProduct = await updateProduct({
     id: productId,
     categoryId,
@@ -32,13 +30,11 @@ export async function updateProductForSeller({
     priceCents,
     stockQuantity,
   });
-  console.log("i have updated i guess ", updatedProduct )
   return updatedProduct;
 }
 
 export async function deleteProductForSeller({ productId, sellerId }) {
   const product = await findProductById(productId);
-  console.log("the product i got is this ", product);
   if (!product || product.deleted_at != null) {
     throw new Error("NO_PRODUCT_FOUND");
   }
